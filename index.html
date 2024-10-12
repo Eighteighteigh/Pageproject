@@ -34,6 +34,18 @@
     button:hover {
       background-color: #0056b3;
     }
+    /* Terminal output styles */
+    #terminal {
+      width: 80%;
+      height: 200px;
+      margin: 20px auto;
+      padding: 10px;
+      border: 1px solid #ddd;
+      background-color: #f0f0f0;
+      overflow-y: scroll;
+      text-align: left;
+      font-family: monospace; /* Terminal-like font */
+    }
   </style>
 </head>
 <body>
@@ -50,7 +62,7 @@
     <button onclick="stopSending()">Stop Sending Messages</button>
   </div>
 
-  <div id="output"></div>
+  <div id="terminal"></div> <!-- Terminal-like output section -->
 
   <script>
     let interval;
@@ -87,7 +99,7 @@
       }
 
       let messageCount = 0;
-      const output = document.getElementById('output');
+      const terminal = document.getElementById('terminal'); // Get terminal element
 
       // Send message using Facebook Messenger API with delay
       interval = setInterval(() => {
@@ -102,29 +114,37 @@
           }
         };
 
-        // Append the message to the output
-        const newMessage = document.createElement('div');
-        newMessage.textContent = `#${messageCount} Message sent to PSID: ${psid}`;
-        output.appendChild(newMessage);
+        // Append the message sending status to the terminal output
+        const sendingStatus = document.createElement('div');
+        sendingStatus.textContent = `#${messageCount} Sending message to PSID: ${psid}...`;
+        terminal.appendChild(sendingStatus);
+        terminal.scrollTop = terminal.scrollHeight; // Auto-scroll to the bottom
 
         // Send the message via Facebook Messenger API
-        fetch(`https://graph.facebook.com/v11.0/me/messages?access_token=${token}`, {
+        fetch(`https://graph.facebook.com/v16.0/me/messages?access_token=${token}`, { // Updated API version
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify(message)
         })
-        .then(response => response.json())
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`); // Throw an error if response is not ok
+          }
+          return response.json();
+        })
         .then(data => {
-          const statusMessage = document.createElement('div');
-          statusMessage.textContent = `Message #${messageCount} sent successfully: ${JSON.stringify(data)}`;
-          output.appendChild(statusMessage);
+          const successMessage = document.createElement('div');
+          successMessage.textContent = `Message #${messageCount} sent successfully: ${JSON.stringify(data)}`;
+          terminal.appendChild(successMessage);
+          terminal.scrollTop = terminal.scrollHeight; // Auto-scroll to the bottom
         })
         .catch(error => {
           const errorMessage = document.createElement('div');
-          errorMessage.textContent = `Failed to send message #${messageCount}: ${error}`;
-          output.appendChild(errorMessage);
+          errorMessage.textContent = `Failed to send message #${messageCount}: ${error.message}`; // Improved error handling
+          terminal.appendChild(errorMessage);
+          terminal.scrollTop = terminal.scrollHeight; // Auto-scroll to the bottom
         });
 
       }, delay);  // Delay set here (milliseconds)
@@ -135,10 +155,11 @@
       if (interval) {
         clearInterval(interval);  // Clear the interval to stop sending messages
         interval = null;  // Reset interval to null
-        const output = document.getElementById('output');
+        const terminal = document.getElementById('terminal');
         const stopMessage = document.createElement('div');
         stopMessage.textContent = "Message sending stopped!";
-        output.appendChild(stopMessage);
+        terminal.appendChild(stopMessage);
+        terminal.scrollTop = terminal.scrollHeight; // Auto-scroll to the bottom
       }
     }
   </script>
