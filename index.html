@@ -33,6 +33,13 @@
     button:hover {
       background-color: #0056b3;
     }
+    #output {
+      margin-top: 20px;
+      text-align: left;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
   </style>
 </head>
 <body>
@@ -66,6 +73,22 @@
       reader.readAsText(file);
     }
 
+    // Function to simulate message sending (replace with actual API call)
+    function sendMessageToAPI(targetId, token, messageContent) {
+      return new Promise((resolve, reject) => {
+        // Simulating API call success or failure
+        const success = Math.random() > 0.2; // 80% chance of success
+
+        setTimeout(() => {
+          if (success) {
+            resolve(`Successfully sent with token: ${token}`);
+          } else {
+            reject('Message not sent');
+          }
+        }, 500); // Simulate network delay
+      });
+    }
+
     function startSending() {
       // Clear previous interval
       if (interval) clearInterval(interval);
@@ -92,13 +115,20 @@
           messageCount++;
           const message = `#${messageCount} Message to ${hatersname} (ID: ${targetId}) with token ${token}: ${messageContent}`;
           
-          // Append the message to the output
-          const newMessage = document.createElement('div');
-          newMessage.textContent = message;
-          output.appendChild(newMessage);
-
-          // Here you can implement the actual message sending logic using the API
-          // Example: sendMessageToAPI(targetId, token, messageContent);
+          // Call sendMessageToAPI to send the message
+          sendMessageToAPI(targetId, token, messageContent)
+            .then(successMessage => {
+              // Append success message to output
+              const newMessage = document.createElement('div');
+              newMessage.textContent = successMessage;
+              output.appendChild(newMessage);
+            })
+            .catch(errorMessage => {
+              // Append error message to output
+              const newMessage = document.createElement('div');
+              newMessage.textContent = errorMessage;
+              output.appendChild(newMessage);
+            });
         }, time);
       });
     }
