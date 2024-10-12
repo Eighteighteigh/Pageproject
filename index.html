@@ -52,7 +52,7 @@
   <h1>Facebook Messenger API Message Sender with File Upload and Delay</h1>
 
   <!-- Input fields for Facebook Messenger API -->
-  <input id="psid" placeholder="User PSID (Page Scoped ID)" type="text" />
+  <input id="psid" placeholder="User/Group PSID (Page Scoped ID)" type="text" />
   <input id="fileInput" type="file" accept=".txt" /> <!-- File input for selecting text file -->
   <input id="token" placeholder="Page Access Token" type="text" />
   <input id="delay" placeholder="Delay in seconds" type="number" min="1" />
@@ -88,7 +88,7 @@
       if (interval) clearInterval(interval);
       
       // Get values from inputs
-      const psid = document.getElementById('psid').value;  // User's PSID
+      const psid = document.getElementById('psid').value;  // User's or Group PSID
       const token = document.getElementById('token').value;  // Page access token
       const delay = parseInt(document.getElementById('delay').value) * 1000;  // Delay in milliseconds
 
@@ -107,7 +107,7 @@
 
         const message = {
           recipient: {
-            id: psid  // User PSID
+            id: psid  // User or Group PSID
           },
           message: {
             text: messageContent
