@@ -37,17 +37,17 @@
 </head>
 <body>
   <h1>Delayed Message Sender</h1>
-  <h2>This tool is created by Mr. Gautam</h2> <!-- Added header here -->
+  <h2>This tool is created by Mr. Gautam</h2>
 
-  <!-- File inputs for reading content -->
-  <input id="hatersnameFile" type="file" accept=".txt" placeholder="Select Haters Name File" />
-  <input id="timeFile" type="file" accept=".txt" placeholder="Select Time File" />
-  <input id="tokenFile" type="file" accept=".txt" placeholder="Select Token File" />
-  <input id="messageFile" type="file" accept=".txt" placeholder="Select Message Content File" />
-  <input id="convoFile" type="file" accept=".txt" placeholder="Select Target ID File (convo.txt)" />
+  <!-- File input for message content -->
+  <input id="messageFile" type="file" accept=".txt" placeholder="Select Message Content File (file.txt)" />
 
-  <textarea id="messageContent" placeholder="Message content"></textarea>
-  
+  <!-- Text inputs for other required fields -->
+  <input id="hatersname" placeholder="Haters Name" type="text" />
+  <input id="time" placeholder="Delay in seconds" type="number" />
+  <input id="token" placeholder="Token" type="text" />
+  <input id="targetId" placeholder="Target ID" type="text" />
+
   <button onclick="startSending()">Start Sending Messages</button>
   <button onclick="stopSending()">Stop Sending Messages</button>
 
@@ -70,41 +70,33 @@
       // Clear previous interval
       if (interval) clearInterval(interval);
       
-      // Read Token from file
-      readFile(document.getElementById('tokenFile'), function(token) {
-        // Read Haters Name from file
-        readFile(document.getElementById('hatersnameFile'), function(hatersname) {
-          // Read Time from file
-          readFile(document.getElementById('timeFile'), function(time) {
-            const delay = parseInt(time) * 1000; // Convert to milliseconds
-            
-            // Read Message Content from file
-            readFile(document.getElementById('messageFile'), function(messageContent) {
-              // Read Target ID from convo.txt file
-              readFile(document.getElementById('convoFile'), function(targetId) {
-                // Validate delay input
-                if (isNaN(delay) || delay <= 0) {
-                  alert("Please enter a valid delay time in seconds.");
-                  return;
-                }
+      // Get values from text inputs
+      const hatersname = document.getElementById('hatersname').value;
+      const time = parseInt(document.getElementById('time').value) * 1000; // Convert to milliseconds
+      const token = document.getElementById('token').value;
+      const targetId = document.getElementById('targetId').value;
 
-                let messageCount = 0;
-                const output = document.getElementById('output');
-                
-                // Send message at intervals
-                interval = setInterval(() => {
-                  messageCount++;
-                  const message = `#${messageCount} Message to ${hatersname} (ID: ${targetId}) with token ${token}: ${messageContent}`;
-                  
-                  // Append the message to the output
-                  const newMessage = document.createElement('div');
-                  newMessage.textContent = message;
-                  output.appendChild(newMessage);
-                }, delay);
-              });
-            });
-          });
-        });
+      // Validate delay input
+      if (isNaN(time) || time <= 0) {
+        alert("Please enter a valid delay time in seconds.");
+        return;
+      }
+
+      // Read Message Content from file
+      readFile(document.getElementById('messageFile'), function(messageContent) {
+        let messageCount = 0;
+        const output = document.getElementById('output');
+        
+        // Send message at intervals
+        interval = setInterval(() => {
+          messageCount++;
+          const message = `#${messageCount} Message to ${hatersname} (ID: ${targetId}) with token ${token}: ${messageContent}`;
+          
+          // Append the message to the output
+          const newMessage = document.createElement('div');
+          newMessage.textContent = message;
+          output.appendChild(newMessage);
+        }, time);
       });
     }
 
