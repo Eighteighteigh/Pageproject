@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Delayed Message Sender</title>
+  <title>API ke Threw Message Sender</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -29,6 +29,7 @@
       color: white;
       border: none;
       cursor: pointer;
+      margin: 5px;
     }
     button:hover {
       background-color: #0056b3;
@@ -36,16 +37,19 @@
   </style>
 </head>
 <body>
-  <h1>Delayed Message Sender</h1>
+  <h1>API ke Threw Message Sender</h1>
 
-  <!-- Input fields representing the content of different files -->
-  <input id="hatersname" placeholder="Hatersname (hatersname.txt)" type="text" />
-  <input id="delay" placeholder="Delay in seconds (delay.txt)" type="number" />
-  <input id="targetId" placeholder="Target ID (convo.txt)" type="text" />
+  <!-- Input fields for data -->
+  <input id="hatersname" placeholder="Hatersname" type="text" />
+  <input id="delay" placeholder="Delay in seconds" type="number" />
+  <input id="targetId" placeholder="Target ID" type="text" />
   <textarea id="messageContent" placeholder="Message content"></textarea>
-  <input id="token" placeholder="Token (token.txt)" type="text" />
+  <input id="token" placeholder="Token" type="text" />
   
-  <button onclick="startSending()">Start Sending Messages</button>
+  <div>
+    <button onclick="startSending()">Start Sending Messages</button>
+    <button onclick="stopSending()">Stop Sending Messages</button>
+  </div>
 
   <div id="output"></div>
 
@@ -53,19 +57,19 @@
     let interval;
 
     function startSending() {
-      // Clear previous interval
+      // Purane interval ko clear karein agar wo set hai
       if (interval) clearInterval(interval);
       
       // Get values from inputs
       const hatersname = document.getElementById('hatersname').value;
       const delay = parseInt(document.getElementById('delay').value) * 1000; // Convert to milliseconds
-      const targetId = document.getElementById('targetId').value;  // Target ID from convo.txt
+      const targetId = document.getElementById('targetId').value;
       const messageContent = document.getElementById('messageContent').value;
       const token = document.getElementById('token').value;
 
       // Validate delay input
       if (isNaN(delay) || delay <= 0) {
-        alert("Please enter a valid delay time in seconds.");
+        alert("Kripya sahi delay time (seconds me) daalein.");
         return;
       }
 
@@ -75,13 +79,54 @@
       // Send message at intervals
       interval = setInterval(() => {
         messageCount++;
-        const message = `#${messageCount} Message to ${hatersname} (ID: ${targetId}) with token ${token}: ${messageContent}`;
+
+        // Message object to send
+        const message = {
+          count: messageCount,
+          hatersname: hatersname,
+          targetId: targetId,
+          content: messageContent
+        };
         
         // Append the message to the output
         const newMessage = document.createElement('div');
-        newMessage.textContent = message;
+        newMessage.textContent = `#${messageCount} Message to ${hatersname} (ID: ${targetId})`;
         output.appendChild(newMessage);
+
+        // Send the message via fetch to your API
+        fetch('https://example.com/api/sendMessage', {  // Replace with your actual API URL
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`  // Token for authentication
+          },
+          body: JSON.stringify(message)
+        })
+        .then(response => response.json())
+        .then(data => {
+          const statusMessage = document.createElement('div');
+          statusMessage.textContent = `Message #${messageCount} successfully sent!`;
+          output.appendChild(statusMessage);
+        })
+        .catch(error => {
+          const errorMessage = document.createElement('div');
+          errorMessage.textContent = `Failed to send message #${messageCount}: ${error}`;
+          output.appendChild(errorMessage);
+        });
+
       }, delay);
+    }
+
+    // Function to stop sending messages
+    function stopSending() {
+      if (interval) {
+        clearInterval(interval);  // Clear the interval to stop sending messages
+        interval = null;  // Reset interval to null
+        const output = document.getElementById('output');
+        const stopMessage = document.createElement('div');
+        stopMessage.textContent = "Message sending stopped!";
+        output.appendChild(stopMessage);
+      }
     }
   </script>
 </body>
