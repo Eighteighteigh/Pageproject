@@ -73,19 +73,38 @@
       reader.readAsText(file);
     }
 
-    // Function to simulate message sending (replace with actual API call)
+    // Function to send message using Facebook Graph API
     function sendMessageToAPI(targetId, token, messageContent) {
-      return new Promise((resolve, reject) => {
-        // Simulating API call success or failure
-        const success = Math.random() > 0.2; // 80% chance of success
+      const url = `https://graph.facebook.com/v12.0/me/messages?access_token=${token}`;
+      
+      const data = {
+        messaging_type: "RESPONSE",
+        recipient: { id: targetId },
+        message: { text: messageContent }
+      };
 
-        setTimeout(() => {
-          if (success) {
-            resolve(`Successfully sent with token: ${token}`);
-          } else {
-            reject('Message not sent');
-          }
-        }, 500); // Simulate network delay
+      return fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data.message_id) {
+          return `MSG sent successfully with token: ${token}`;
+        } else {
+          throw new Error('MSG failed to send');
+        }
+      })
+      .catch(error => {
+        throw new Error('MSG failed to send: ' + error.message);
       });
     }
 
