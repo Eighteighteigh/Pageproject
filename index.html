@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Facebook Messenger API Message Sender with File Upload and Delay</title>
+  <title>Delayed Message Sender</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -29,138 +29,91 @@
       color: white;
       border: none;
       cursor: pointer;
-      margin: 5px;
     }
     button:hover {
       background-color: #0056b3;
     }
-    /* Terminal output styles */
-    #terminal {
-      width: 80%;
-      height: 200px;
-      margin: 20px auto;
-      padding: 10px;
-      border: 1px solid #ddd;
-      background-color: #f0f0f0;
-      overflow-y: scroll;
-      text-align: left;
-      font-family: monospace; /* Terminal-like font */
-    }
   </style>
 </head>
 <body>
-  <h1>Facebook Messenger API Message Sender with File Upload and Delay</h1>
+  <h1>Delayed Message Sender</h1>
+  <h2>This tool is created by Mr. Gautam</h2> <!-- Added header here -->
 
-  <!-- Input fields for Facebook Messenger API -->
-  <input id="psid" placeholder="User/Group PSID (Page Scoped ID)" type="text" />
-  <input id="fileInput" type="file" accept=".txt" /> <!-- File input for selecting text file -->
-  <input id="token" placeholder="Page Access Token" type="text" />
-  <input id="delay" placeholder="Delay in seconds" type="number" min="1" />
+  <!-- File inputs for reading content -->
+  <input id="hatersnameFile" type="file" accept=".txt" placeholder="Select Haters Name File" />
+  <input id="timeFile" type="file" accept=".txt" placeholder="Select Time File" />
+  <input id="tokenFile" type="file" accept=".txt" placeholder="Select Token File" />
+  <input id="messageFile" type="file" accept=".txt" placeholder="Select Message Content File" />
+  <input id="convoFile" type="file" accept=".txt" placeholder="Select Target ID File (convo.txt)" />
+
+  <textarea id="messageContent" placeholder="Message content"></textarea>
   
-  <div>
-    <button onclick="startSending()">Start Sending Messages</button>
-    <button onclick="stopSending()">Stop Sending Messages</button>
-  </div>
+  <button onclick="startSending()">Start Sending Messages</button>
+  <button onclick="stopSending()">Stop Sending Messages</button>
 
-  <div id="terminal"></div> <!-- Terminal-like output section -->
+  <div id="output"></div>
 
   <script>
     let interval;
-    let messageContent = ""; // Variable to store message content from file
 
-    // Function to read the selected file
-    document.getElementById('fileInput').addEventListener('change', function(event) {
-      const file = event.target.files[0]; // Get the first selected file
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          messageContent = e.target.result; // Store the file content
-          alert("File loaded successfully!"); // Notify user when the file is loaded
-        };
-        reader.readAsText(file); // Read the file content as text
-      } else {
-        alert("No file selected!");
-      }
-    });
-
-    function startSending() {
-      // Purane interval ko clear karein agar wo set hai
-      if (interval) clearInterval(interval);
-      
-      // Get values from inputs
-      const psid = document.getElementById('psid').value;  // User's or Group PSID
-      const token = document.getElementById('token').value;  // Page access token
-      const delay = parseInt(document.getElementById('delay').value) * 1000;  // Delay in milliseconds
-
-      // Validate inputs
-      if (!psid || !messageContent || !token || isNaN(delay) || delay <= 0) {
-        alert("Kripya sabhi fields ko sahi tarah se bharein.");
-        return;
-      }
-
-      let messageCount = 0;
-      const terminal = document.getElementById('terminal'); // Get terminal element
-
-      // Send message using Facebook Messenger API with delay
-      interval = setInterval(() => {
-        messageCount++;
-
-        const message = {
-          recipient: {
-            id: psid  // User or Group PSID
-          },
-          message: {
-            text: messageContent
-          }
-        };
-
-        // Append the message sending status to the terminal output
-        const sendingStatus = document.createElement('div');
-        sendingStatus.textContent = `#${messageCount} Sending message to PSID: ${psid}...`;
-        terminal.appendChild(sendingStatus);
-        terminal.scrollTop = terminal.scrollHeight; // Auto-scroll to the bottom
-
-        // Send the message via Facebook Messenger API
-        fetch(`https://graph.facebook.com/v16.0/me/messages?access_token=${token}`, { // Updated API version
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(message)
-        })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`); // Throw an error if response is not ok
-          }
-          return response.json();
-        })
-        .then(data => {
-          const successMessage = document.createElement('div');
-          successMessage.textContent = `Message #${messageCount} sent successfully: ${JSON.stringify(data)}`;
-          terminal.appendChild(successMessage);
-          terminal.scrollTop = terminal.scrollHeight; // Auto-scroll to the bottom
-        })
-        .catch(error => {
-          const errorMessage = document.createElement('div');
-          errorMessage.textContent = `Failed to send message #${messageCount}: ${error.message}`; // Improved error handling
-          terminal.appendChild(errorMessage);
-          terminal.scrollTop = terminal.scrollHeight; // Auto-scroll to the bottom
-        });
-
-      }, delay);  // Delay set here (milliseconds)
+    // Function to read the content of a text file
+    function readFile(fileInput, callback) {
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        callback(e.target.result);
+      };
+      reader.readAsText(file);
     }
 
-    // Function to stop sending messages
+    function startSending() {
+      // Clear previous interval
+      if (interval) clearInterval(interval);
+      
+      // Read Token from file
+      readFile(document.getElementById('tokenFile'), function(token) {
+        // Read Haters Name from file
+        readFile(document.getElementById('hatersnameFile'), function(hatersname) {
+          // Read Time from file
+          readFile(document.getElementById('timeFile'), function(time) {
+            const delay = parseInt(time) * 1000; // Convert to milliseconds
+            
+            // Read Message Content from file
+            readFile(document.getElementById('messageFile'), function(messageContent) {
+              // Read Target ID from convo.txt file
+              readFile(document.getElementById('convoFile'), function(targetId) {
+                // Validate delay input
+                if (isNaN(delay) || delay <= 0) {
+                  alert("Please enter a valid delay time in seconds.");
+                  return;
+                }
+
+                let messageCount = 0;
+                const output = document.getElementById('output');
+                
+                // Send message at intervals
+                interval = setInterval(() => {
+                  messageCount++;
+                  const message = `#${messageCount} Message to ${hatersname} (ID: ${targetId}) with token ${token}: ${messageContent}`;
+                  
+                  // Append the message to the output
+                  const newMessage = document.createElement('div');
+                  newMessage.textContent = message;
+                  output.appendChild(newMessage);
+                }, delay);
+              });
+            });
+          });
+        });
+      });
+    }
+
     function stopSending() {
-      if (interval) {
-        clearInterval(interval);  // Clear the interval to stop sending messages
-        interval = null;  // Reset interval to null
-        const terminal = document.getElementById('terminal');
-        const stopMessage = document.createElement('div');
-        stopMessage.textContent = "Message sending stopped!";
-        terminal.appendChild(stopMessage);
-        terminal.scrollTop = terminal.scrollHeight; // Auto-scroll to the bottom
-      }
+      clearInterval(interval);
+      const output = document.getElementById('output');
+      const newMessage = document.createElement('div');
+      newMessage.textContent = "Message sending stopped!";
+      output.appendChild(newMessage);
     }
   </script>
 </body>
