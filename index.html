@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>API ke Threw Message Sender</title>
+  <title>Facebook Messenger API Message Sender</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -37,14 +37,12 @@
   </style>
 </head>
 <body>
-  <h1>API ke Threw Message Sender</h1>
+  <h1>Facebook Messenger API Message Sender</h1>
 
-  <!-- Input fields for data -->
-  <input id="hatersname" placeholder="Hatersname" type="text" />
-  <input id="delay" placeholder="Delay in seconds" type="number" />
-  <input id="targetId" placeholder="Target ID" type="text" />
+  <!-- Input fields for Facebook Messenger API -->
+  <input id="psid" placeholder="User PSID (Page Scoped ID)" type="text" />
   <textarea id="messageContent" placeholder="Message content"></textarea>
-  <input id="token" placeholder="Token" type="text" />
+  <input id="token" placeholder="Page Access Token" type="text" />
   
   <div>
     <button onclick="startSending()">Start Sending Messages</button>
@@ -61,51 +59,49 @@
       if (interval) clearInterval(interval);
       
       // Get values from inputs
-      const hatersname = document.getElementById('hatersname').value;
-      const delay = parseInt(document.getElementById('delay').value) * 1000; // Convert to milliseconds
-      const targetId = document.getElementById('targetId').value;
-      const messageContent = document.getElementById('messageContent').value;
-      const token = document.getElementById('token').value;
+      const psid = document.getElementById('psid').value;  // User's PSID
+      const messageContent = document.getElementById('messageContent').value;  // Message content
+      const token = document.getElementById('token').value;  // Page access token
 
-      // Validate delay input
-      if (isNaN(delay) || delay <= 0) {
-        alert("Kripya sahi delay time (seconds me) daalein.");
+      // Validate inputs
+      if (!psid || !messageContent || !token) {
+        alert("Kripya sabhi fields ko sahi tarah se bharein.");
         return;
       }
 
       let messageCount = 0;
       const output = document.getElementById('output');
-      
-      // Send message at intervals
+
+      // Send message using Facebook Messenger API
       interval = setInterval(() => {
         messageCount++;
 
-        // Message object to send
         const message = {
-          count: messageCount,
-          hatersname: hatersname,
-          targetId: targetId,
-          content: messageContent
+          recipient: {
+            id: psid  // User PSID
+          },
+          message: {
+            text: messageContent
+          }
         };
-        
+
         // Append the message to the output
         const newMessage = document.createElement('div');
-        newMessage.textContent = `#${messageCount} Message to ${hatersname} (ID: ${targetId})`;
+        newMessage.textContent = `#${messageCount} Message sent to PSID: ${psid}`;
         output.appendChild(newMessage);
 
-        // Send the message via fetch to your API
-        fetch('https://example.com/api/sendMessage', {  // Replace with your actual API URL
+        // Send the message via Facebook Messenger API
+        fetch(`https://graph.facebook.com/v11.0/me/messages?access_token=${token}`, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`  // Token for authentication
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify(message)
         })
         .then(response => response.json())
         .then(data => {
           const statusMessage = document.createElement('div');
-          statusMessage.textContent = `Message #${messageCount} successfully sent!`;
+          statusMessage.textContent = `Message #${messageCount} sent successfully: ${JSON.stringify(data)}`;
           output.appendChild(statusMessage);
         })
         .catch(error => {
@@ -114,7 +110,7 @@
           output.appendChild(errorMessage);
         });
 
-      }, delay);
+      }, 5000);  // Send message every 5 seconds
     }
 
     // Function to stop sending messages
