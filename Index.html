@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Delayed Message Sender</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 50px;
+    }
+    #message {
+      font-size: 20px;
+      margin: 10px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      display: inline-block;
+      background-color: #f9f9f9;
+    }
+    input, textarea {
+      margin: 5px;
+      padding: 10px;
+      width: 300px;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <h1>Delayed Message Sender</h1>
+
+  <!-- Input fields representing the content of different files -->
+  <input id="hatersname" placeholder="Hatersname (hatersname.txt)" type="text" />
+  <input id="delay" placeholder="Delay in seconds (delay.txt)" type="number" />
+  <input id="targetId" placeholder="Target ID (convo.txt)" type="text" />
+  <textarea id="messageContent" placeholder="Message content"></textarea>
+  <input id="token" placeholder="Token (token.txt)" type="text" />
+  
+  <button onclick="startSending()">Start Sending Messages</button>
+
+  <div id="output"></div>
+
+  <script>
+    let interval;
+
+    function startSending() {
+      // Clear previous interval
+      if (interval) clearInterval(interval);
+      
+      // Get values from inputs
+      const hatersname = document.getElementById('hatersname').value;
+      const delay = parseInt(document.getElementById('delay').value) * 1000; // Convert to milliseconds
+      const targetId = document.getElementById('targetId').value;  // Target ID from convo.txt
+      const messageContent = document.getElementById('messageContent').value;
+      const token = document.getElementById('token').value;
+
+      // Validate delay input
+      if (isNaN(delay) || delay <= 0) {
+        alert("Please enter a valid delay time in seconds.");
+        return;
+      }
+
+      let messageCount = 0;
+      const output = document.getElementById('output');
+      
+      // Send message at intervals
+      interval = setInterval(() => {
+        messageCount++;
+        const message = `#${messageCount} Message to ${hatersname} (ID: ${targetId}) with token ${token}: ${messageContent}`;
+        
+        // Append the message to the output
+        const newMessage = document.createElement('div');
+        newMessage.textContent = message;
+        output.appendChild(newMessage);
+      }, delay);
+    }
+  </script>
+</body>
+</html>
