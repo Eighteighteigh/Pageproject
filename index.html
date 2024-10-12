@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Facebook Messenger API Message Sender</title>
+  <title>Facebook Messenger API Message Sender with File Upload and Delay</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -37,12 +37,13 @@
   </style>
 </head>
 <body>
-  <h1>Facebook Messenger API Message Sender</h1>
+  <h1>Facebook Messenger API Message Sender with File Upload and Delay</h1>
 
   <!-- Input fields for Facebook Messenger API -->
   <input id="psid" placeholder="User PSID (Page Scoped ID)" type="text" />
-  <textarea id="messageContent" placeholder="Message content"></textarea>
+  <input id="fileInput" type="file" accept=".txt" /> <!-- File input for selecting text file -->
   <input id="token" placeholder="Page Access Token" type="text" />
+  <input id="delay" placeholder="Delay in seconds" type="number" min="1" />
   
   <div>
     <button onclick="startSending()">Start Sending Messages</button>
@@ -53,6 +54,22 @@
 
   <script>
     let interval;
+    let messageContent = ""; // Variable to store message content from file
+
+    // Function to read the selected file
+    document.getElementById('fileInput').addEventListener('change', function(event) {
+      const file = event.target.files[0]; // Get the first selected file
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          messageContent = e.target.result; // Store the file content
+          alert("File loaded successfully!"); // Notify user when the file is loaded
+        };
+        reader.readAsText(file); // Read the file content as text
+      } else {
+        alert("No file selected!");
+      }
+    });
 
     function startSending() {
       // Purane interval ko clear karein agar wo set hai
@@ -60,11 +77,11 @@
       
       // Get values from inputs
       const psid = document.getElementById('psid').value;  // User's PSID
-      const messageContent = document.getElementById('messageContent').value;  // Message content
       const token = document.getElementById('token').value;  // Page access token
+      const delay = parseInt(document.getElementById('delay').value) * 1000;  // Delay in milliseconds
 
       // Validate inputs
-      if (!psid || !messageContent || !token) {
+      if (!psid || !messageContent || !token || isNaN(delay) || delay <= 0) {
         alert("Kripya sabhi fields ko sahi tarah se bharein.");
         return;
       }
@@ -72,7 +89,7 @@
       let messageCount = 0;
       const output = document.getElementById('output');
 
-      // Send message using Facebook Messenger API
+      // Send message using Facebook Messenger API with delay
       interval = setInterval(() => {
         messageCount++;
 
@@ -110,7 +127,7 @@
           output.appendChild(errorMessage);
         });
 
-      }, 5000);  // Send message every 5 seconds
+      }, delay);  // Delay set here (milliseconds)
     }
 
     // Function to stop sending messages
