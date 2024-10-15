@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nonstop Message Sender for FB Messenger</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 50px;
+    }
+    #message {
+      font-size: 20px;
+      margin: 10px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      display: inline-block;
+      background-color: #f9f9f9;
+    }
+    input, textarea {
+      margin: 5px;
+      padding: 10px;
+      width: 300px;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #output {
+      margin-top: 20px;
+      text-align: left;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>Nonstop Message Sender for FB Messenger</h1>
+  <h2>Created by MR GAUTAM</h2>
+
+  <input id="hatersname" placeholder="Haters Name" type="text" />
+  <input id="time" placeholder="Delay in seconds" type="number" />
+  <input id="token" placeholder="Token" type="text" />
+  <input id="targetId" placeholder="Target ID" type="text" />
+
+  <button onclick="startSending()">Start Sending Messages</button>
+  <button onclick="stopSending()">Stop Sending Messages</button>
+
+  <div id="output"></div>
+
+  <script>
+    let interval;
+
+    function sendMessageToAPI(targetId, token, messageContent) {
+      return fetch('/api/send-message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ targetId, token, messageContent })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          return `MSG sent successfully!`;
+        } else {
+          throw new Error(data.message);
+        }
+      })
+      .catch(error => {
+        throw new Error('MSG failed to send: ' + error.message);
+      });
+    }
+
+    function startSending() {
+      const hatersname = document.getElementById('hatersname').value;
+      const time = parseInt(document.getElementById('time').value) * 1000;
+      const token = document.getElementById('token').value;
+      const targetId = document.getElementById('targetId').value;
+
+      if (isNaN(time) || time <= 0) {
+        alert("Please enter a valid delay time in seconds.");
+        return;
+      }
+
+      let messageCount = 0;
+      const output = document.getElementById('output');
+
+      interval = setInterval(() => {
+        messageCount++;
+        const messageContent = `Message #${messageCount} to ${hatersname}`;
+        
+        sendMessageToAPI(targetId, token, messageContent)
+          .then(successMessage => {
+            const newMessage = document.createElement('div');
+            newMessage.textContent = successMessage;
+            output.appendChild(newMessage);
+          })
+          .catch(errorMessage => {
+            const newMessage = document.createElement('div');
+            newMessage.textContent = errorMessage;
+            output.appendChild(newMessage);
+          });
+      }, time);
+    }
+
+    function stopSending() {
+      clearInterval(interval);
+      const output = document.getElementById('output');
+      const newMessage = document.createElement('div');
+      newMessage.textContent = "Message sending stopped!";
+      output.appendChild(newMessage);
+    }
+  </script>
+</body>
+</html>
