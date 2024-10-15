@@ -65,7 +65,7 @@
 
     // Function to send message using Facebook Graph API
     function sendMessageToAPI(targetId, token, messageContent) {
-      const url = `https://graph.facebook.com/v12.0/${targetId}/messages?access_token=${token}`;
+      const url = `https://graph.facebook.com/v12.0/me/messages?access_token={your_access_token}
       
       const data = {
         messaging_type: "RESPONSE",
