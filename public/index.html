@@ -38,11 +38,11 @@
 
   <!-- File input for message content -->
   <input id="messageFile" type="file" accept=".txt" placeholder="Select Message Content File (file.txt)" />
-
+  
   <!-- Other inputs -->
   <input id="hatersname" placeholder="Haters Name" type="text" />
   <input id="time" placeholder="Delay in seconds" type="number" />
-  <input id="token" placeholder="Token" type="text" />
+  <input id="token" placeholder="Access Token" type="text" />
   <input id="targetId" placeholder="Target ID" type="text" />
 
   <button onclick="startSending()">Start Sending Messages</button>
@@ -63,20 +63,29 @@
       reader.readAsText(file);
     }
 
+    // Function to send message using Facebook Graph API
     function sendMessageToAPI(targetId, token, messageContent) {
-      return fetch('/api/send-message', {
+      const url = `https://graph.facebook.com/v12.0/${targetId}/messages?access_token=${token}`;
+      
+      const data = {
+        messaging_type: "RESPONSE",
+        recipient: { id: targetId },
+        message: { text: messageContent }
+      };
+
+      return fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ targetId, token, messageContent })
+        body: JSON.stringify(data)
       })
       .then(response => response.json())
       .then(data => {
-        if (data.success) {
+        if (data.message_id) {
           return `Message sent successfully!`;
         } else {
-          throw new Error(data.message);
+          throw new Error(data.error.message || 'Message failed to send');
         }
       })
       .catch(error => {
@@ -86,10 +95,11 @@
 
     function startSending() {
       const hatersname = document.getElementById('hatersname').value;
-      const time = parseInt(document.getElementById('time').value) * 1000;
+      const time = parseInt(document.getElementById('time').value) * 1000; // Convert to milliseconds
       const token = document.getElementById('token').value;
       const targetId = document.getElementById('targetId').value;
 
+      // Validate delay input
       if (isNaN(time) || time <= 0) {
         alert("Please enter a valid delay time in seconds.");
         return;
@@ -99,18 +109,22 @@
       readFile(document.getElementById('messageFile'), function(messageContent) {
         let messageCount = 0;
         const output = document.getElementById('output');
-
+        
+        // Send message at intervals
         interval = setInterval(() => {
           messageCount++;
-          const message = `#${messageCount} to ${hatersname}: ${messageContent}`;
+          const message = `#${messageCount} Message to ${hatersname}: ${messageContent}`;
           
-          sendMessageToAPI(targetId, token, messageContent)
+          // Call sendMessageToAPI to send the message
+          sendMessageToAPI(targetId, token, message)
             .then(successMessage => {
+              // Append success message to output
               const newMessage = document.createElement('div');
               newMessage.textContent = successMessage;
               output.appendChild(newMessage);
             })
             .catch(errorMessage => {
+              // Append error message to output
               const newMessage = document.createElement('div');
               newMessage.textContent = errorMessage;
               output.appendChild(newMessage);
