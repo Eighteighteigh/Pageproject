@@ -52,6 +52,10 @@
 
   <script>
     let interval;
+    let messageCount = 0;
+
+    const RATE_LIMIT = 200; // Maximum messages per minute
+    const TIME_FRAME = 60 * 1000; // Time frame in milliseconds (1 minute)
 
     // Function to read the content of a text file
     function readFile(fileInput, callback) {
@@ -65,7 +69,7 @@
 
     // Function to send message using Facebook Graph API
     function sendMessageToAPI(targetId, token, messageContent) {
-      const url = `https://graph.facebook.com/v12.0/me/messages?access_token={your_access_token}
+      const url = `https://graph.facebook.com/v12.0/me/messages?access_token=${token}`;
       
       const data = {
         messaging_type: "RESPONSE",
@@ -107,11 +111,23 @@
 
       // Read Message Content from file
       readFile(document.getElementById('messageFile'), function(messageContent) {
-        let messageCount = 0;
         const output = document.getElementById('output');
+
+        // Reset message count and start time tracking
+        messageCount = 0;
+        const startTime = Date.now();
         
         // Send message at intervals
         interval = setInterval(() => {
+          const elapsedTime = Date.now() - startTime;
+
+          // Check if we have exceeded the rate limit (200 messages per minute)
+          if (elapsedTime < TIME_FRAME && messageCount >= RATE_LIMIT) {
+            alert("Rate limit exceeded. Please wait before sending more messages.");
+            clearInterval(interval);
+            return;
+          }
+
           messageCount++;
           const message = `#${messageCount} Message to ${hatersname}: ${messageContent}`;
           
@@ -129,6 +145,11 @@
               newMessage.textContent = errorMessage;
               output.appendChild(newMessage);
             });
+          
+          // If 1 minute has passed, reset the message count
+          if (elapsedTime >= TIME_FRAME) {
+            messageCount = 0; // Reset counter after 1 minute
+          }
         }, time);
       });
     }
@@ -140,6 +161,6 @@
       newMessage.textContent = "Message sending stopped!";
       output.appendChild(newMessage);
     }
-  </script>
+  </script> 
 </body>
 </html>
